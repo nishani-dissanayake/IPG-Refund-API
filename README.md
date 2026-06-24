@@ -29,6 +29,9 @@ You need the following credentials from Payable:
 - `Content-Type: application/json`
 - `Authorization: <base64(businessKey:businessToken)>` — concatenate **businessKey**, a single colon **`:`**, and **businessToken**; Base64-encode the result.
 
+**Note:** Ensure that you have enabled `Refund API` permission from the Business Integration in the Payable merchant portal.
+<img width="1879" height="761" alt="image" src="https://github.com/user-attachments/assets/3c672170-5277-4d98-9634-a79514025a74" />
+
 **Body (JSON)**
 
 | Field | Required | Description |
@@ -73,18 +76,20 @@ Send a JSON object with the following **mandatory** fields.
 
 | Field | Notes |
 |-------|--------|
-| `orderId` | Can be obtained from the payment notification data. |
-| `refundAmount` | The refund amount. |
+| `orderId` | Can be obtained from the payment notification data, or via the payment details in the Payable merchant portal. |
+| `refundAmount` | The refund amount must not exceed the initial transaction amount. |
 | `notificationUrl` | A valid `https` URL for the refund notification callback. |
+
+**Note:** The transaction must be settled before initiating a refund request.
 
 **Success (200)** — example:
 
 ```json
 {
-  "status": "PENDING",
-  "uid": "XXXXXXXXXXX",
-  "statusIndicator": "XXXXXXX",
-  "paymentPage": "https://xxxxxx/ipg/{environment}}/?uid=xxxxxxx-..."
+    "requestStatus": "PENDING",
+    "refundStatus": "NOT_STARTED",
+    "requestedAmount": 123.00,
+    "requestedTime": "2026-06-24T12:06:00.411340"
 }
 ```
 
