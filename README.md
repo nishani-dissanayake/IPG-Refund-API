@@ -78,7 +78,7 @@ Send a JSON object with the following **mandatory** fields.
 |-------|--------|
 | `orderId` | Can be obtained from the payment notification data, or via the payment details in the Payable merchant portal. |
 | `refundAmount` | The refund amount must not exceed the initial transaction amount. |
-| `notificationUrl` | A valid `https` URL for the refund notification callback. |
+| `notifyUrl` | A valid `https` URL for the refund notification callback. |
 
 **Note:** The transaction must be settled before initiating a refund request.
 
@@ -101,7 +101,7 @@ Send a JSON object with the following **mandatory** fields.
 {
     "orderId": "oid-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     "refundAmount": "10.00",
-    "notificationUrl": "https://yoursite.com/webhook/payment"
+    "notifyUrl": "https://yoursite.com/webhook/payment"
 }
 ```
 
@@ -115,12 +115,12 @@ Validation failures return **`400`** with a per-field map:
 {
   "status": 400,
   "errors": {
-    "isRetry": ["Invalid format for Is Retry."]
+    "orderId": ["Invalid format for Order Id."]
   }
 }
 ```
 
-Authentication or origin/package mismatch may return **`401`** or **`400`** with a single `error` string. Upstream or configuration issues may return **`404`** or **`500`**.
+Authentication or permission issues may return **`401`** or **`400`** with a single `error` string. Upstream or configuration issues may return **`404`** or **`500`**.
 
 ---
 
@@ -129,28 +129,31 @@ Authentication or origin/package mismatch may return **`401`** or **`400`** with
 PAYable calls your **webhook** URL server-to-server (the URL you supply as **`notifyUrl`**).
 
 - The callback is **not** loaded in the browser; test by updating your database when the endpoint is hit.
-- **`notifyUrl`** must use a **public HTTPS** host; **localhost** will not receive production callbacks.
+- **`notifyUrl`** must use a **public HTTPS** host; **localhost** will not receive production callbacks due to security concerns.
+
+**Note:** You will receive the refund notification only after the refund has been processed and completed.
 
 ### Typical callback payload
 
-| Field | Description |
-|-------|-------------|
-| `merchantKey` | Merchant identifier |
-| `payableOrderId` | PAYable order id |
-| `payableTransactionId` | Transaction reference |
-| `payableAmount` | Amount |
-| `payableCurrency` | Currency |
-| `invoiceNo` | Your invoice id |
-| `statusCode` | Numeric status |
-| `statusMessage` | e.g. `SUCCESS` / `FAILURE` |
-| `paymentType`, `paymentMethod`, `paymentScheme` | Payment metadata |
-| `custom1`, `custom2` |  |
-| `cardHolderName`, `cardNumber` | Present when applicable (masked PAN) |
-| `checkValue` |  |
+```json
+{
+  "payableOriginalTxId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "payableOriginalOrderId": "oid-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "payableRefundTxId": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "refundedDateTime": "2026-06-24 11:45:22.0",
+  "refundedAmount": "123.00",
+  "totalRefundedAmount": "123.00",
+  "orderId: 'oid-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  "checkValue": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+}
+```
 
 ### Acknowledging the callback
 
-Respond with JSON such as:
+Generate your own check value by adhering to the following format: </br>
+`UPPERCASE(SHA512[<orderId>|<refundTransactionId>|UPPERCASE(SHA512[<businessToken>])])`
+
+If the `checkValue` validation is passed, respond with JSON such as:
 
 ```json
 {
