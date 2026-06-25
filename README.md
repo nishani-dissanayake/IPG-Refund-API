@@ -143,7 +143,7 @@ PAYable calls your **webhook** URL server-to-server (the URL you supply as **`no
   "refundedDateTime": "2026-06-24 11:45:22.0",
   "refundedAmount": "123.00",
   "totalRefundedAmount": "123.00",
-  "orderId: 'oid-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  "orderId": 'oid-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
   "checkValue": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 }
 ```
