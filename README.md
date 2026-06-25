@@ -151,13 +151,45 @@ PAYable calls your **webhook** URL server-to-server (the URL you supply as **`no
 ### Acknowledging the callback
 
 Generate your own check value by adhering to the following format: </br>
-`UPPERCASE(SHA512[<orderId>|<refundTransactionId>|UPPERCASE(SHA512[<businessToken>])])`
+`UPPERCASE(SHA512(orderId + "|" + refundTransactionId + "|" + UPPERCASE(SHA512(businessToken))))`
 
 If the `checkValue` validation is passed, respond with JSON such as:
 
 ```json
 {
   "Status": 200
+}
+```
+
+#### Node.js code snippet for checkValue generation
+
+```js
+const crypto = require("crypto");
+
+/**
+ * Compute the expected Payable refund checkValue.
+ *
+ * Formula:
+ *   UPPERCASE(SHA512( orderId | refundTransactionId | UPPERCASE(SHA512(businessToken)) ))
+ *
+ * @param {string} orderId
+ * @param {string} refundTransactionId
+ * @param {string} businessToken
+ * @returns {string} UPPERCASE hex SHA-512 digest
+ */
+function generateRefundCheckValue(orderId, refundTransactionId, businessToken) {
+  const sha512Upper = (str) =>
+    crypto.createHash("sha512").update(str, "utf8").digest("hex").toUpperCase();
+
+  // Step 1: Hash the business token
+  const secretHash = sha512Upper(businessToken);
+
+  // Step 2: Build the check string (trailing pipe is intentional)
+  const checkString = `${orderId}|${refundTransactionId}|`;
+
+  // Step 3: Concatenate and hash
+  const finalString = checkString + secretHash;
+  return sha512Upper(finalString);
 }
 ```
 
